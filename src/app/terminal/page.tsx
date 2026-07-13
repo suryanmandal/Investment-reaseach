@@ -1360,6 +1360,19 @@ function TerminalContent() {
                       <span className="text-[#14172b]">{user.preferences?.risk || strategyRisk}</span>
                     </div>
                   </div>
+
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem("insidealpha_user");
+                      localStorage.removeItem("antigravity_user");
+                      setUser(null);
+                      setDrawerOpen(false);
+                      setLogs((prev) => [...prev, "[USER] Logged out successfully."]);
+                    }}
+                    className="w-full mt-2 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 text-[10px] font-bold rounded-lg uppercase tracking-wider transition-colors cursor-pointer text-center"
+                  >
+                    Log Out
+                  </button>
                 </div>
               ) : (
                 <div className="bg-[#f7f8fa] border border-[#e3e5ed] rounded-xl p-4 text-center space-y-2">
