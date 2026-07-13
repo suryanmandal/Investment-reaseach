@@ -69,6 +69,14 @@ export default function Home() {
           </div>
 
           <div className="flex items-center space-x-3.5">
+            <a
+              href="https://github.com/suryanmandal/Investment-reaseach"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-xs text-[#565b74] hover:text-[#14172b] px-3 py-1.5 transition-colors cursor-pointer"
+            >
+              GitHub
+            </a>
             <button
               onClick={() => router.push("/terminal")}
               className="font-semibold text-xs text-[#565b74] hover:text-[#14172b] px-3 py-1.5 transition-colors cursor-pointer"

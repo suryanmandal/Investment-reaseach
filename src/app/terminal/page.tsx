@@ -664,6 +664,14 @@ function TerminalContent() {
 
         {/* Global Connection Badges & Profile Menu */}
         <div className="flex items-center justify-between md:justify-end space-x-4">
+          <a
+            href="https://github.com/suryanmandal/Investment-reaseach"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold text-xs text-[#565b74] hover:text-[#2563eb] transition-colors border border-[#e3e5ed] px-3.5 py-2 bg-white rounded-xl shadow-sm cursor-pointer"
+          >
+            GitHub
+          </a>
 
           <div className="flex items-center space-x-2.5">
             {user ? (
