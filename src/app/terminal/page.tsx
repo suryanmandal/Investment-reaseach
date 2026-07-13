@@ -24,6 +24,7 @@ import {
   ChevronRight,
   ArrowLeft,
   Settings,
+  Loader2,
 } from "lucide-react";
 
 // Types matching the API SSE output
@@ -132,15 +133,7 @@ function TerminalContent() {
   // Mock Auth & Navigation
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
-  const [user, setUser] = useState<any>({
-    name: "Alex Miller",
-    role: "Senior Portfolio Manager",
-    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&fit=crop&auto=format&q=80",
-    preferences: {
-      horizon: "Long-Term",
-      risk: "Balanced",
-    }
-  });
+  const [user, setUser] = useState<any>(null);
 
   const modelProvider = "gemini"; // Kept under backend system silently
 
@@ -182,6 +175,53 @@ function TerminalContent() {
       }
     } catch (e) {
       console.error("Failed to load history:", e);
+    }
+  };
+
+  // Real Sign In State
+  const [signInEmail, setSignInEmail] = useState("");
+  const [signInPassword, setSignInPassword] = useState("");
+  const [signInError, setSignInError] = useState<string | null>(null);
+  const [signInLoading, setSignInLoading] = useState(false);
+
+  const handleSignInSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signInEmail || !signInPassword) {
+      setSignInError("Please enter both email and password.");
+      return;
+    }
+    setSignInError(null);
+    setSignInLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: signInEmail, password: signInPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to sign in.");
+      }
+      localStorage.setItem("insidealpha_user", JSON.stringify(data.user));
+      setUser({
+        name: data.user.name,
+        role: data.user.role || "Quant Analyst",
+        avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&fit=crop&auto=format&q=80",
+        preferences: {
+          horizon: strategyHorizon,
+          risk: strategyRisk,
+        }
+      });
+      setShowSignInModal(false);
+      setSignInEmail("");
+      setSignInPassword("");
+      setLogs((prev) => [...prev, `[USER] Logged in as ${data.user.name}`]);
+    } catch (err: any) {
+      console.error(err);
+      setSignInError(err.message || "An unexpected error occurred.");
+    } finally {
+      setSignInLoading(false);
     }
   };
 
@@ -1301,25 +1341,40 @@ function TerminalContent() {
               </div>
 
               {/* User Profile Info */}
-              <div className="bg-[#f7f8fa] border border-[#e3e5ed] rounded-xl p-4 space-y-3.5">
-                <div className="flex items-center space-x-3">
-                  <img src={user.avatarUrl} alt={user.name} className="h-10 w-10 rounded-full object-cover border border-[#2563eb]/20" />
-                  <div>
-                    <h4 className="font-bold text-xs text-[#14172b]">{user.name}</h4>
+              {user ? (
+                <div className="bg-[#f7f8fa] border border-[#e3e5ed] rounded-xl p-4 space-y-3.5">
+                  <div className="flex items-center space-x-3">
+                    <img src={user.avatarUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&fit=crop&auto=format&q=80"} alt={user.name} className="h-10 w-10 rounded-full object-cover border border-[#2563eb]/20" />
+                    <div>
+                      <h4 className="font-bold text-xs text-[#14172b]">{user.name}</h4>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-2 border-t border-[#e3e5ed] grid grid-cols-2 gap-2 text-[9px] text-[#565b74] uppercase font-bold">
+                    <div>
+                      <span className="block text-[8px] text-[#676c85]">Default Horizon</span>
+                      <span className="text-[#14172b]">{user.preferences?.horizon || strategyHorizon}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[8px] text-[#676c85]">Default Risk</span>
+                      <span className="text-[#14172b]">{user.preferences?.risk || strategyRisk}</span>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="pt-2 border-t border-[#e3e5ed] grid grid-cols-2 gap-2 text-[9px] text-[#565b74] uppercase font-bold">
-                  <div>
-                    <span className="block text-[8px] text-[#676c85]">Default Horizon</span>
-                    <span className="text-[#14172b]">{user.preferences.horizon}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[8px] text-[#676c85]">Default Risk</span>
-                    <span className="text-[#14172b]">{user.preferences.risk}</span>
-                  </div>
+              ) : (
+                <div className="bg-[#f7f8fa] border border-[#e3e5ed] rounded-xl p-4 text-center space-y-2">
+                  <p className="text-[10px] text-[#565b74] font-semibold">Not Signed In</p>
+                  <button
+                    onClick={() => {
+                      setDrawerOpen(false);
+                      setShowSignInModal(true);
+                    }}
+                    className="w-full py-2 bg-[#2563eb] hover:bg-[#3b82f6] text-white text-[10px] font-bold rounded-lg uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    Sign In
+                  </button>
                 </div>
-              </div>
+              )}
 
               {/* Curated Recommendations */}
               <div className="space-y-2.5">
@@ -1358,33 +1413,84 @@ function TerminalContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#14172b]/20 backdrop-blur-sm p-4">
           <div className="bg-white w-full max-w-sm rounded-2xl border border-[#e3e5ed] p-6 space-y-4 shadow-2xl relative animate-float">
             <button
-              onClick={() => setShowSignInModal(false)}
+              onClick={() => {
+                setShowSignInModal(false);
+                setSignInError(null);
+              }}
               className="absolute top-4 right-4 text-slate-400 hover:text-[#14172b] cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
-            <h3 className="text-sm font-bold text-[#14172b]">Select Persona Profile</h3>
-            <p className="text-[10px] text-[#565b74] leading-normal">Choose a professional quantitative strategist profile to customize recommendations and default priorities.</p>
-            <div className="space-y-2 pt-2">
-              {MOCK_USERS.map((u) => (
-                <button
-                  key={u.name}
-                  onClick={() => {
-                    setUser(u);
-                    setStrategyHorizon(u.preferences.horizon);
-                    setStrategyRisk(u.preferences.risk);
-                    setShowSignInModal(false);
-                    setLogs((prev) => [...prev, `[USER] Logged in as ${u.name} (${u.role})`]);
+            <h3 className="text-sm font-bold text-[#14172b]">Sign In to InsideAlpha</h3>
+            <p className="text-[10px] text-[#565b74] leading-normal">
+              Enter your credentials to unlock customized quantitative portfolio analytics and run research pipelines.
+            </p>
+
+            <form onSubmit={handleSignInSubmit} className="space-y-3.5 pt-2">
+              {signInError && (
+                <div className="p-2.5 bg-rose-50 border border-rose-200 text-[#f0505a] text-[10px] font-semibold rounded-xl text-center">
+                  {signInError}
+                </div>
+              )}
+
+              <div className="flex flex-col space-y-1">
+                <label className="text-[9px] font-bold text-[#676c85] uppercase tracking-wider">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="alex.miller@portfolio.com"
+                  value={signInEmail}
+                  onChange={(e) => {
+                    setSignInEmail(e.target.value);
+                    setSignInError(null);
                   }}
-                  className="w-full p-3 bg-[#f7f8fa] hover:bg-slate-50 border border-[#e3e5ed] hover:border-[#d3d7e2] rounded-xl flex items-center space-x-3 cursor-pointer text-left transition-all"
-                >
-                  <img src={u.avatarUrl} alt={u.name} className="h-8 w-8 rounded-full object-cover border border-[#2563eb]/20" />
-                  <div>
-                    <div className="text-xs font-bold text-[#14172b]">{u.name}</div>
-                    <div className="text-[10px] text-[#565b74] font-medium">{u.role}</div>
-                  </div>
-                </button>
-              ))}
+                  required
+                  className="w-full px-3.5 py-2.5 bg-[#f7f8fa] border border-[#e3e5ed] rounded-xl text-xs font-semibold text-[#14172b] placeholder-[#676c85] focus:outline-none focus:border-[#2563eb]"
+                />
+              </div>
+
+              <div className="flex flex-col space-y-1">
+                <label className="text-[9px] font-bold text-[#676c85] uppercase tracking-wider">Password</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={signInPassword}
+                  onChange={(e) => {
+                    setSignInPassword(e.target.value);
+                    setSignInError(null);
+                  }}
+                  required
+                  className="w-full px-3.5 py-2.5 bg-[#f7f8fa] border border-[#e3e5ed] rounded-xl text-xs font-semibold text-[#14172b] placeholder-[#676c85] focus:outline-none focus:border-[#2563eb]"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={signInLoading}
+                className="w-full py-2.5 mt-2 bg-[#2563eb] hover:bg-[#3b82f6] text-white font-bold rounded-xl text-xs tracking-wider uppercase transition-colors shadow-sm cursor-pointer flex items-center justify-center space-x-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {signInLoading ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                    <span>Signing In...</span>
+                  </>
+                ) : (
+                  <span>Sign In</span>
+                )}
+              </button>
+            </form>
+
+            <div className="text-center pt-2 border-t border-[#e3e5ed] text-[9.5px] text-[#565b74]">
+              Don't have an account?{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSignInModal(false);
+                  router.push("/signup");
+                }}
+                className="font-bold text-[#2563eb] hover:text-[#3b82f6] transition-colors cursor-pointer"
+              >
+                Sign Up
+              </button>
             </div>
           </div>
         </div>
