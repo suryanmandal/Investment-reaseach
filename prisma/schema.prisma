@@ -1,0 +1,32 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model ResearchReport {
+  id               String   @id @default(uuid())
+  ticker           String
+  companyName      String
+  verdict          String
+  safetyScore      Int
+  reasoningReport  String
+  revenueAnalysis  String
+  risksAnalysis    String
+  sentimentAnalysis String
+  strategyHorizon  String
+  strategyRisk     String
+  createdAt        DateTime @default(now())
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("Investor")
+  createdAt DateTime @default(now())
+}
