@@ -9,9 +9,21 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +41,7 @@ export default function SignupPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, avatarUrl }),
       });
 
       const data = await res.json();
@@ -103,6 +115,28 @@ export default function SignupPage() {
                   {error}
                 </div>
               )}
+
+              {/* Profile Photo Uploader */}
+              <div className="flex flex-col items-center space-y-2 pb-2">
+                <label className="text-[10px] font-bold text-[#676c85] uppercase tracking-wide">
+                  Profile Photo (Optional)
+                </label>
+                <div className="relative group cursor-pointer">
+                  <img
+                    src={avatarUrl || "/logos/default-user.png"}
+                    alt="Profile Preview"
+                    className="w-16 h-16 rounded-full object-cover border border-[#e3e5ed] bg-slate-50 p-0.5 group-hover:border-[#2563eb] transition-colors"
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    title="Upload profile photo"
+                  />
+                </div>
+                <span className="text-[9px] text-slate-400">Click to upload custom photo</span>
+              </div>
 
               {/* Full Name */}
               <div className="flex flex-col space-y-1">

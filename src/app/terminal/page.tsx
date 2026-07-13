@@ -207,7 +207,7 @@ function TerminalContent() {
       setUser({
         name: data.user.name,
         role: data.user.role || "Quant Analyst",
-        avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&fit=crop&auto=format&q=80",
+        avatarUrl: data.user.avatarUrl || "/logos/default-user.png",
         preferences: {
           horizon: strategyHorizon,
           risk: strategyRisk,
@@ -239,7 +239,7 @@ function TerminalContent() {
         setUser({
           name: parsed.name,
           role: parsed.role || "Quant Analyst",
-          avatarUrl: parsed.avatarUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&fit=crop&auto=format&q=80",
+          avatarUrl: parsed.avatarUrl || "/logos/default-user.png",
           preferences: {
             horizon: strategyHorizon,
             risk: strategyRisk,

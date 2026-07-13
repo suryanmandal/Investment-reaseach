@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password, avatarUrl } = await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
         email,
         password, // stored directly for SQLite demo sandbox
         role: "Senior Quant Analyst",
+        avatarUrl,
       },
     });
 
@@ -41,6 +42,7 @@ export async function POST(req: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatarUrl: user.avatarUrl,
       },
     });
   } catch (error: any) {
