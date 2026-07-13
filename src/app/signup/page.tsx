@@ -175,6 +175,20 @@ export default function SignupPage() {
                   )}
                 </button>
               </div>
+              {/* Back to Sign In Option */}
+              <div className="text-center pt-3 border-t border-[#e3e5ed] mt-4 text-[10.5px] text-[#565b74]">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem("insidealpha_trigger_signin", "true");
+                    router.push("/terminal");
+                  }}
+                  className="font-bold text-[#2563eb] hover:text-[#3b82f6] transition-colors cursor-pointer"
+                >
+                  Sign In
+                </button>
+              </div>
             </form>
           )}
         </div>

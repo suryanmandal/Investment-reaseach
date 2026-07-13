@@ -187,6 +187,11 @@ function TerminalContent() {
 
   useEffect(() => {
     fetchHistory();
+    const triggerSignIn = localStorage.getItem("insidealpha_trigger_signin");
+    if (triggerSignIn === "true") {
+      localStorage.removeItem("insidealpha_trigger_signin");
+      setShowSignInModal(true);
+    }
     const stored = localStorage.getItem("insidealpha_user") || localStorage.getItem("antigravity_user");
     if (stored) {
       try {
